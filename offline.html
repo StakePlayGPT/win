@@ -1,25 +1,19 @@
 <!doctype html>
-<html lang="it">
+<html lang="ru">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Offline</title>
+<title>Вы офлайн</title>
 <style>
-  body { 
-    background:#0b0b0c; 
-    color:#fff; 
-    font-family: system-ui, sans-serif; 
-    display:flex; 
-    justify-content:center; 
-    align-items:center; 
-    height:100vh; 
-    text-align:center; 
+  body{
+    margin:0; background:#0b0b0c; color:#fff; min-height:100vh;
+    display:flex; align-items:center; justify-content:center;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
+    text-align:center;
   }
-  p { color:#9aa0a6; }
+  .box{background:#131316;border:1px solid #23232a;border-radius:16px;padding:24px;width:min(520px,90%)}
+  p{color:#9aa0a6;margin:8px 0 0}
 </style>
-<body>
-  <div>
-    <h1>Sei offline</h1>
-    <p>Controlla la connessione a Internet e riprova.</p>
-  </div>
-</body>
-</html>
+<div class="box">
+  <h1>Нет соединения</h1>
+  <p>Проверьте интернет и обновите страницу. Приложение будет работать сразу, как сеть появится.</p>
+</div>
