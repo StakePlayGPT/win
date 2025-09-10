@@ -1,52 +1,148 @@
 <!doctype html>
-<html lang="it">
+<html lang="ru">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Stake Play</title>
 
-  <!-- Подключаем PWA -->
+  <!-- PWA -->
   <link rel="manifest" href="/win/manifest.json">
   <meta name="theme-color" content="#000000">
-
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/win/sw.js')
-        .then(() => console.log("Service Worker registrato"))
-        .catch(err => console.error("SW errore:", err));
+      navigator.serviceWorker.register('/win/sw.js').catch(console.error);
     }
   </script>
 
   <style>
-    body { 
-      margin:0; 
-      font-family: system-ui, sans-serif; 
-      background:#0b0b0c; 
-      color:#fff; 
-      display:flex; 
-      align-items:center; 
-      justify-content:center; 
-      height:100vh; 
-      text-align:center; 
+    :root {
+      --bg:#0b0b0c; --card:#131316; --line:#23232a; --fg:#fff; --muted:#9aa0a6; --accent:#22c55e;
     }
-    h1 { font-size:28px; margin:0 0 10px; }
-    p { color:#9aa0a6; margin:0 0 20px; }
-    a.btn {
-      display:inline-block;
-      padding:12px 20px;
-      background:#22c55e;
-      color:#0b0b0c;
-      font-weight:600;
-      border-radius:10px;
-      text-decoration:none;
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+      background:var(--bg); color:var(--fg); font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
     }
+    .wrap{padding:24px; width:min(560px,100%)}
+    .card{
+      background:var(--card); border:1px solid var(--line); border-radius:16px; padding:24px;
+      text-align:center; box-shadow:0 12px 30px rgba(0,0,0,.35);
+    }
+    h1{margin:0 0 8px;font-size:28px}
+    p{margin:0 0 20px;color:var(--muted)}
+    .btn{
+      display:inline-block; padding:12px 18px; border-radius:10px; text-decoration:none; font-weight:600;
+    }
+    .btn-primary{background:var(--accent); color:#0b0b0c}
+    /* БАННЕР-ПОДСКАЗКА */
+    .a2hs{
+      position:fixed; left:12px; right:12px; bottom:12px; z-index:50;
+      background:#15151a; border:1px solid var(--line); color:var(--fg); border-radius:14px;
+      padding:12px 14px; display:none; gap:12px; align-items:flex-start;
+      box-shadow:0 10px 24px rgba(0,0,0,.35);
+    }
+    .a2hs.visible{display:flex}
+    .a2hs .txt{font-size:14px; color:#d9d9de}
+    .a2hs .muted{color:var(--muted)}
+    .a2hs .actions{margin-left:auto; display:flex; gap:8px}
+    .a2hs button{padding:8px 12px; border-radius:10px; border:1px solid var(--line); background:#1b1b20; color:#fff; cursor:pointer}
+    .a2hs .ok{background:var(--accent); color:#0b0b0c; border-color:#149a49}
+    .a2hs .close{background:#25252b}
+    .hint-steps{margin:.3rem 0 0; line-height:1.45}
+    .icon-share{display:inline-block; width:14px; height:14px; border:2px solid currentColor; border-radius:3px; position:relative; top:2px; margin:0 3px}
+    .icon-share::after{content:"↑"; position:absolute; left:2px; top:-8px; font-weight:700; font-size:12px}
   </style>
 </head>
 <body>
-  <div>
-    <h1>Stake Play</h1>
-    <p>Accesso rapido ai segnali e ai giochi 🎮</p>
-    <a class="btn" href="https://t.me/tuobot">Apri in Telegram</a>
+  <div class="wrap">
+    <div class="card">
+      <h1>Stake Play</h1>
+      <p>Accesso rapido ai segnali e ai giochi 🎮</p>
+      <a class="btn btn-primary" href="https://t.me/tuobot">Открыть в Telegram</a>
+    </div>
   </div>
+
+  <!-- Баннер подсказки (iOS/Android) -->
+  <div id="a2hs" class="a2hs" role="region" aria-live="polite">
+    <div class="txt" id="a2hs-text">
+      <!-- сюда подставляется инструкция -->
+    </div>
+    <div class="actions">
+      <button id="a2hs-install" class="ok" style="display:none">Установить</button>
+      <button id="a2hs-close" class="close">Закрыть</button>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const banner = document.getElementById('a2hs');
+      const text   = document.getElementById('a2hs-text');
+      const btnInstall = document.getElementById('a2hs-install');
+      const btnClose   = document.getElementById('a2hs-close');
+
+      const ua = navigator.userAgent.toLowerCase();
+      const isIOS = /iphone|ipad|ipod/.test(ua);
+      const isAndroid = /android/.test(ua);
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+
+      // Скрыть баннер навсегда после закрытия
+      const KEY = 'a2hs_dismissed_v1';
+      if (localStorage.getItem(KEY)) return;
+
+      let deferredPrompt = null;
+
+      // ANDROID: ловим beforeinstallprompt и показываем кнопку «Установить»
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        if (!isStandalone && isAndroid) {
+          text.innerHTML = `
+            <div><b>Добавить на главный экран (Android)</b></div>
+            <div class="hint-steps">
+              Нажми кнопку <b>Установить</b> ниже.<br>
+              Если баннер не появился: открой меню <b>⋮</b> → <b>Добавить на главный экран</b>.
+            </div>
+          `;
+          btnInstall.style.display = 'inline-block';
+          banner.classList.add('visible');
+        }
+      });
+
+      btnInstall.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        try { await deferredPrompt.userChoice; } catch(_) {}
+        deferredPrompt = null;
+        banner.classList.remove('visible');
+        localStorage.setItem(KEY, '1');
+      });
+
+      // iOS: показываем текстовую подсказку
+      if (isIOS && !isStandalone) {
+        text.innerHTML = `
+          <div><b>Как добавить на главный экран (iPhone)</b></div>
+          <div class="hint-steps">
+            1) Нажми <span class="icon-share" aria-hidden="true"></span> <b>«Поделиться»</b> внизу экрана.<br>
+            2) Выбери <b>«На экран “Домой”»</b>.<br>
+            3) Нажми <b>«Добавить»</b>.
+          </div>
+          <div class="muted">После этого сайт откроется как приложение — без адресной строки.</div>
+        `;
+        banner.classList.add('visible');
+      }
+
+      // Закрыть
+      btnClose.addEventListener('click', () => {
+        banner.classList.remove('visible');
+        localStorage.setItem(KEY, '1');
+      });
+
+      // Если приложение уже установлено — не показываем баннер
+      window.addEventListener('appinstalled', () => {
+        banner.classList.remove('visible');
+        localStorage.setItem(KEY, '1');
+      });
+    })();
+  </script>
 </body>
 </html>
