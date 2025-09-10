@@ -1,8 +1,8 @@
 {
   "name": "Stake Play",
   "short_name": "StakePlay",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "/win/index.html",
+  "scope": "/win/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#000000",
@@ -11,19 +11,19 @@
   "description": "Accesso rapido ai segnali e ai giochi direttamente dalla schermata del telefono.",
   "icons": [
     {
-      "src": "/icons/stakeplay_icon_192.png",
+      "src": "/win/icons/192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/stakeplay_icon_256.png",
+      "src": "/win/icons/256.png",
       "sizes": "256x256",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/stakeplay_icon_512.png",
+      "src": "/win/icons/512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
