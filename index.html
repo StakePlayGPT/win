@@ -47,7 +47,6 @@
     .a2hs .ghost{background:#25252b}
 
     /* Баннер для Instagram WebView */
-    .igbar{ composes: a2hs; } /* для читаемости; если не поддерживается, ниже дубль */
     .igbar{
       position:fixed; left:12px; right:12px; bottom:12px; z-index:60;
       background:#15151a; border:1px solid var(--line); color:#fff; border-radius:16px;
@@ -106,15 +105,18 @@
       const isIG = ua.includes('instagram');
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 
-      /* ---------- Обычный A2HS баннер (не для Instagram) ---------- */
+      /* ---------- A2HS баннер (показывать при каждом заходе, если не установлено) ---------- */
       const a2hs = document.getElementById('a2hs');
       const a2hsTitle = document.getElementById('a2hs-title');
       const a2hsSteps = document.getElementById('a2hs-steps');
       const btnInstall = document.getElementById('a2hs-install');
       const btnClose = document.getElementById('a2hs-close');
 
-      const KEY = 'a2hs_dismissed_v1';
-      if (!localStorage.getItem(KEY) && !isStandalone && !isIG) {
+      // Не используем localStorage: закрытие скрывает баннер только до перезагрузки (sessionStorage)
+      const SESSION_KEY_A2HS = 'a2hs_hidden_session';
+      const hiddenThisSession = sessionStorage.getItem(SESSION_KEY_A2HS) === '1';
+
+      if (!hiddenThisSession && !isStandalone && !isIG) {
         let deferredPrompt = null;
 
         if (isIOS) {
@@ -145,21 +147,20 @@
           try { await deferredPrompt.userChoice; } catch(_) {}
           deferredPrompt = null;
           a2hs.classList.remove('visible');
-          localStorage.setItem(KEY, '1');
+          sessionStorage.setItem(SESSION_KEY_A2HS, '1'); // скрыть до перезагрузки
         });
 
         btnClose.addEventListener('click', () => {
           a2hs.classList.remove('visible');
-          localStorage.setItem(KEY, '1');
+          sessionStorage.setItem(SESSION_KEY_A2HS, '1'); // скрыть до перезагрузки
         });
 
         window.addEventListener('appinstalled', () => {
-          a2hs.classList.remove('visible');
-          localStorage.setItem(KEY, '1');
+          a2hs.classList.remove('visible'); // при установке скрываем
         });
       }
 
-      /* ---------- Баннер для Instagram WebView ---------- */
+      /* ---------- Баннер для Instagram WebView (тоже показывать при каждом заходе) ---------- */
       if (isIG && !isStandalone) {
         const bar = document.getElementById('igbar');
         const steps = document.getElementById('ig-steps');
@@ -169,15 +170,17 @@
         const btnCloseIG = document.getElementById('ig-close');
         const URL_NOW  = location.href.split('#')[0];
 
+        steps.innerHTML = isIOS
+          ? `Чтобы добавить на главный экран, открой в Safari:<br>
+              Нажми <b>…</b> вверху справа → <b>Open in System Browser</b>.<br>
+              В Safari: <b>Поделиться</b> → <b>На экран “Домой”</b> → <b>Добавить</b>.`
+          : `Чтобы добавить на главный экран, открой в Chrome:<br>
+              Меню <b>⋮</b> → <b>Открыть в Chrome</b> (или кнопка ниже).<br>
+              В Chrome: <b>⋮</b> → <b>Добавить на главный экран</b> / <b>Установить приложение</b>.`;
+
         if (isIOS) {
-          steps.innerHTML = `Чтобы добавить на главный экран, открой в Safari:<br>
-            Нажми <b>…</b> вверху справа → <b>Open in System Browser</b>.<br>
-            В Safari: <b>Поделиться</b> → <b>На экран “Домой”</b> → <b>Добавить</b>.`;
           btnOpen.href = URL_NOW; // авто-открыть Safari нельзя
         } else {
-          steps.innerHTML = `Чтобы добавить на главный экран, открой в Chrome:<br>
-            Меню <b>⋮</b> → <b>Открыть в Chrome</b> (или кнопка ниже).<br>
-            В Chrome: <b>⋮</b> → <b>Добавить на главный экран</b> / <b>Установить приложение</b>.`;
           const intent = `intent://${location.host}${location.pathname}${location.search}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(URL_NOW)};end`;
           btnOpen.addEventListener('click', (e)=>{ e.preventDefault(); location.href = intent; });
         }
