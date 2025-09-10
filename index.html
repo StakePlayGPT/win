@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Stake Play</title>
+  <title>Stake Play — личный кабинет</title>
 
   <!-- PWA -->
   <link rel="manifest" href="/win/manifest.json">
@@ -15,77 +15,170 @@
   </script>
 
   <style>
-    :root { --bg:#0b0b0c; --card:#131316; --line:#23232a; --fg:#fff; --muted:#9aa0a6; --accent:#22c55e; }
+    :root { --bg:#0b0b0c; --card:#131316; --line:#23232a; --fg:#fff; --muted:#9aa0a6; --accent:#22c55e; --warn:#f59e0b; --danger:#ef4444;}
     *{box-sizing:border-box}
     body{
-      margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
-      background:var(--bg); color:var(--fg); font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
+      margin:0; background:var(--bg); color:var(--fg);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
     }
-    .wrap{padding:24px; width:min(560px,100%)}
-    .card{
-      background:var(--card); border:1px solid var(--line); border-radius:16px; padding:24px;
-      text-align:center; box-shadow:0 12px 30px rgba(0,0,0,.35);
+    .container{max-width:820px;margin:0 auto;padding:20px}
+    .topbar{position:sticky;top:0;background:rgba(11,11,12,.6);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);z-index:5}
+    .brand{display:flex;gap:10px;align-items:center;padding:10px 0}
+    .brand h1{font-size:20px;margin:0}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}
+    .grid{display:grid;gap:14px}
+    .grid2{grid-template-columns:1fr 1fr}
+    @media (max-width:720px){ .grid2{grid-template-columns:1fr} }
+    .muted{color:var(--muted)}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;border-radius:12px;border:1px solid #2a2a31;background:#1b1b20;color:#fff;text-decoration:none;font-weight:700;cursor:pointer}
+    .btn:hover{border-color:#34343b}
+    .btn-primary{background:var(--accent);color:#0b0b0c;border-color:#159347}
+    .btn-outline{background:#1b1b20}
+    .btn-ghost{background:#25252b}
+    .code{display:flex;gap:8px;align-items:center;background:#0f0f13;border:1px dashed #34343b;padding:10px 12px;border-radius:12px}
+    .code b{font-size:18px;letter-spacing:1px}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .tag{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:#1a1a1f;color:#d9d9de;font-size:12px}
+    .progress{display:grid;gap:10px}
+    .step{display:flex;gap:10px;align-items:flex-start;background:#16161a;border:1px solid #26262e;border-radius:12px;padding:12px}
+    .step .n{width:28px;height:28px;border-radius:8px;background:#1f1f25;border:1px solid #2a2a31;display:flex;align-items:center;justify-content:center;font-weight:800}
+    .step.done{opacity:.85}
+    .step .act{margin-left:auto}
+    .timer{display:flex;gap:8px;align-items:center;font-weight:700}
+    .timer .dot{width:10px;height:10px;border-radius:50%;background:var(--warn);box-shadow:0 0 10px rgba(245,158,11,.6)}
+    details summary{cursor:pointer;list-style:none}
+    details summary::-webkit-details-marker{display:none}
+    details summary{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#15151a;font-weight:700}
+    details .content{padding:12px}
+    .warn{color:#ffdf9e}
+    .danger{color:#ffb4b4}
+    /* A2HS banners */
+    .a2hs,.igbar{
+      position:fixed;left:12px;right:12px;bottom:12px;z-index:60;background:#15151a;border:1px solid var(--line);
+      color:#fff;border-radius:16px;padding:14px;display:none;box-shadow:0 10px 24px rgba(0,0,0,.35)
     }
-    h1{margin:0 0 8px;font-size:28px}
-    p{margin:0 0 0;color:var(--muted)}
-
-    /* Общий баннер A2HS */
-    .a2hs{
-      position:fixed; left:12px; right:12px; bottom:12px; z-index:50;
-      background:#15151a; border:1px solid var(--line); color:var(--fg); border-radius:16px;
-      padding:14px; display:none; box-shadow:0 10px 24px rgba(0,0,0,.35);
-    }
-    .a2hs.visible{display:block}
-    .a2hs .title{font-weight:800; margin:0 0 6px}
-    .a2hs .steps{color:#d9d9de; font-size:14px; line-height:1.5}
-    .a2hs .actions{margin-top:10px; display:flex; gap:8px; flex-wrap:wrap}
-    .a2hs button,.a2hs a{
-      padding:10px 12px; border-radius:10px; border:1px solid #2a2a31;
-      background:#1b1b20; color:#fff; cursor:pointer; text-decoration:none; font-weight:700
-    }
-    .a2hs .ok{background:var(--accent); color:#0b0b0c; border-color:#149a49}
-    .a2hs .ghost{background:#25252b}
-
-    /* Баннер для Instagram WebView */
-    .igbar{
-      position:fixed; left:12px; right:12px; bottom:12px; z-index:60;
-      background:#15151a; border:1px solid var(--line); color:#fff; border-radius:16px;
-      padding:14px; display:none; box-shadow:0 10px 24px rgba(0,0,0,.35);
-    }
-    .igbar.visible{display:block}
-    .igbar .title{font-weight:800; margin:0 0 6px}
-    .igbar .steps{color:#d9d9de; font-size:14px; line-height:1.5; white-space:normal; word-break:normal}
-    .igbar .actions{margin-top:10px; display:flex; gap:8px; flex-wrap:wrap}
-    .igbar .btn{padding:10px 12px; border-radius:10px; border:1px solid #2a2a31;
-                background:#1b1b20; color:#fff; cursor:pointer; text-decoration:none; font-weight:700}
-    .igbar .btn-primary{background:#22c55e; color:#0b0b0c; border-color:#149a49}
-    .igbar .btn-ghost{background:#25252b}
-    @media (max-width: 420px){
-      .a2hs .actions, .igbar .actions{flex-direction:column; align-items:stretch}
-    }
-    .icon-share{display:inline-block; width:14px; height:14px; border:2px solid currentColor; border-radius:3px; position:relative; top:2px; margin:0 3px}
-    .icon-share::after{content:"↑"; position:absolute; left:2px; top:-8px; font-weight:700; font-size:12px}
+    .a2hs.visible,.igbar.visible{display:block}
+    .a2hs .title,.igbar .title{font-weight:800;margin:0 0 6px}
+    .a2hs .steps,.igbar .steps{color:#d9d9de;font-size:14px;line-height:1.5}
+    .a2hs .actions,.igbar .actions{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+    .icon-share{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-radius:3px;position:relative;top:2px;margin:0 3px}
+    .icon-share::after{content:"↑";position:absolute;left:2px;top:-8px;font-weight:700;font-size:12px}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <h1>Stake Play</h1>
-      <p>Accesso rapido ai segnali e ai giochi 🎮</p>
+  <div class="topbar">
+    <div class="container brand">
+      <img src="/win/icons/192.png" alt="" width="28" height="28" style="border-radius:7px;border:1px solid #2a2a31">
+      <h1>Stake Play — личный кабинет</h1>
+      <span class="tag">цель: зарегистрироваться и ввести промокод</span>
     </div>
   </div>
 
-  <!-- Баннер A2HS (iOS/Android для внешних браузеров) -->
+  <div class="container grid">
+    <!-- Хиро -->
+    <div class="card">
+      <div class="grid grid2">
+        <div>
+          <h2 style="margin:0 0 6px">Старт за 2 шага</h2>
+          <p class="muted" style="margin:0">Открой сайт, зарегистрируйся и введи промокод. Мы подсветим, что уже сделано.</p>
+          <div class="row" style="margin-top:12px">
+            <a class="btn btn-primary" href="https://stake-play.me/home" target="_blank" rel="noopener">Открыть stake-play.me</a>
+            <a class="btn btn-outline" href="https://stake-play.me/instant/aviamasters" target="_blank" rel="noopener">Oткрыть Aviamasters ✈️</a>
+          </div>
+          <div class="code" style="margin-top:12px">
+            <span class="muted">Промокод:</span> <b id="promo">VIP88</b>
+            <button id="copy" class="btn btn-ghost" style="margin-left:auto">Скопировать</button>
+          </div>
+          <div class="row" style="margin-top:10px">
+            <span class="tag">бонус 50–150$</span>
+            <span class="tag">окно выигрышей 5 часов</span>
+            <span class="tag">стоп после ~2000$</span>
+          </div>
+        </div>
+        <div class="card" style="background:#111115">
+          <b>Сообщение (IT)</b>
+          <p class="muted" style="margin:8px 0 0;line-height:1.55">
+            Ciao! Sono sicura al 100% del mio bot e dei suoi segnali. Ti darò accesso al bot e un bonus iniziale di 100€, così potrai partire subito. Già oggi hai la possibilità di guadagnare oltre 400€ seguendo i segnali. Dopo il prelievo divideremo i profitti al 50/50. Se non rispetti le regole o provi a imbrogliarmi, l’accesso verrà revocato. Se per te va bene, iniziamo subito.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Прогресс -->
+    <div class="card">
+      <h3 style="margin:0 0 10px">Твой прогресс</h3>
+      <div class="progress" id="steps">
+        <div class="step" data-step="1">
+          <div class="n">1</div>
+          <div class="txt">
+            <b>Зайди на сайт stake-play.me</b>
+            <div class="muted">Открой и оставь вкладку активной.</div>
+          </div>
+          <div class="act"><button class="btn btn-outline do" data-action="open">Открыть сайт</button></div>
+        </div>
+        <div class="step" data-step="2">
+          <div class="n">2</div>
+          <div class="txt">
+            <b>Зарегистрируйся</b>
+            <div class="muted">Создай аккаунт — это быстро.</div>
+          </div>
+          <div class="act"><button class="btn btn-outline mark" data-mark="reg">Отметить: сделал(а)</button></div>
+        </div>
+        <div class="step" data-step="3">
+          <div class="n">3</div>
+          <div class="txt">
+            <b>Введи промокод <span class="warn">VIP88</span></b>
+            <div class="muted">Вставь во время регистрации. Нажми «Активировал» — запустим таймер 5 часов.</div>
+          </div>
+          <div class="act"><button class="btn btn-primary" id="activate">Активировал промокод</button></div>
+        </div>
+        <div class="step" data-step="4">
+          <div class="n">4</div>
+          <div class="txt">
+            <b>Начни играть в первые 5 часов</b>
+            <div class="muted">Именно в этот период коэффициент максимальный.</div>
+          </div>
+          <div class="act timer"><span class="dot"></span><span id="tleft">5:00:00</span></div>
+        </div>
+        <div class="step" data-step="5">
+          <div class="n">5</div>
+          <div class="txt">
+            <b class="danger">Достиг 2000$? Остановись и выведи</b>
+            <div class="muted">После 2000$ казино снижает шансы — не рискуй.</div>
+          </div>
+          <div class="act"><button class="btn btn-outline mark" data-mark="cashout">Отметить: вывел(а)</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Инструкция (итальянский скрипт шагов) -->
+    <details class="card">
+      <summary>Пошагово (IT) — как получить бонус</summary>
+      <div class="content">
+        <ol style="line-height:1.6;margin:0">
+          <li>Entra nel sito: <a href="https://stake-play.me/" target="_blank" rel="noopener">https://stake-play.me/</a></li>
+          <li>Registrati.</li>
+          <li>Durante la registrazione inserisci il codice promo: <b>VIP88</b> — bonus 50–150$.</li>
+          <li>Inizia a giocare entro le prime 5 ore dall’attivazione.</li>
+          <li>Se vinci ~2000$ o di più — fermati e incassa subito.</li>
+        </ol>
+        <p style="margin:10px 0 0"><b>Consiglio:</b> prova <a href="https://stake-play.me/instant/aviamasters" target="_blank" rel="noopener">Aviamasters ✈️</a>.
+          Scegli il simbolo ⚡, puntata 1$, tasto A, numero 100. Non toccare altro e aspetta la vincita.</p>
+      </div>
+    </details>
+  </div>
+
+  <!-- Баннер A2HS (iOS/Android внешние браузеры) -->
   <div id="a2hs" class="a2hs" role="region" aria-live="polite">
     <div class="title" id="a2hs-title"></div>
     <div class="steps" id="a2hs-steps"></div>
     <div class="actions">
-      <button id="a2hs-install" class="ok" style="display:none">Установить</button>
-      <button id="a2hs-close" class="ghost">Скрыть</button>
+      <button id="a2hs-install" class="btn ok" style="display:none">Установить</button>
+      <button id="a2hs-close" class="btn ghost">Скрыть</button>
     </div>
   </div>
 
-  <!-- Баннер для Instagram WebView -->
+  <!-- Баннер Instagram WebView -->
   <div id="igbar" class="igbar" role="region" aria-live="polite">
     <div class="title">Вы открыли сайт внутри Instagram</div>
     <div id="ig-steps" class="steps"></div>
@@ -99,105 +192,114 @@
 
   <script>
     (function(){
+      /* ===== Базовые элементы ===== */
+      const promo = 'VIP88';
+      const btnCopy = document.getElementById('copy');
+      const btnActivate = document.getElementById('activate');
+      const tleft = document.getElementById('tleft');
+
+      /* Копирование промокода */
+      btnCopy.addEventListener('click', async ()=>{
+        try { await navigator.clipboard.writeText(promo); btnCopy.textContent = 'Скопировано'; setTimeout(()=>btnCopy.textContent='Скопировать',1500); }
+        catch { prompt('Скопируйте код вручную:', promo); }
+      });
+
+      /* Шаги и сохранение прогресса */
+      const LS = 'sp_steps_v1';
+      const state = JSON.parse(localStorage.getItem(LS) || '{"reg":false,"cashout":false,"tStart":null}');
+      const markBtns = document.querySelectorAll('.mark');
+      const stepsEl = document.getElementById('steps');
+
+      function render(){
+        stepsEl.querySelector('[data-step="2"]').classList.toggle('done', !!state.reg);
+        stepsEl.querySelector('[data-step="5"]').classList.toggle('done', !!state.cashout);
+        const s3 = stepsEl.querySelector('[data-step="3"]');
+        const s4 = stepsEl.querySelector('[data-step="4"]');
+        s3.classList.toggle('done', !!state.tStart);
+        s4.style.display = state.tStart ? 'flex' : 'none';
+      }
+      markBtns.forEach(b=>b.addEventListener('click', ()=>{
+        const k = b.dataset.mark; state[k] = !state[k]; localStorage.setItem(LS, JSON.stringify(state)); render();
+      }));
+
+      /* Таймер 5 часов */
+      function tick(){
+        if(!state.tStart){ tleft.textContent='5:00:00'; return; }
+        const end = state.tStart + 5*60*60*1000;
+        const left = Math.max(0, end - Date.now());
+        const h = Math.floor(left/3600000).toString().padStart(1,'0');
+        const m = Math.floor((left%3600000)/60000).toString().padStart(2,'0');
+        const s = Math.floor((left%60000)/1000).toString().padStart(2,'0');
+        tleft.textContent = `${h}:${m}:${s}`;
+        if (left===0) document.querySelector('.timer .dot').style.background = '#555';
+      }
+      setInterval(tick, 1000); tick();
+
+      btnActivate.addEventListener('click', ()=>{
+        if(!state.tStart){ state.tStart = Date.now(); localStorage.setItem(LS, JSON.stringify(state)); render(); tick(); }
+      });
+
+      render();
+
+      /* Быстрые действия */
+      document.querySelector('[data-action="open"]').onclick = ()=>window.open('https://stake-play.me/home','_blank');
+
+      /* ===== Подсказки A2HS ===== */
       const ua = navigator.userAgent.toLowerCase();
       const isIOS = /iphone|ipad|ipod/.test(ua);
       const isAndroid = /android/.test(ua);
       const isIG = ua.includes('instagram');
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 
-      /* ---------- A2HS баннер (показывать при каждом заходе, если не установлено) ---------- */
       const a2hs = document.getElementById('a2hs');
       const a2hsTitle = document.getElementById('a2hs-title');
       const a2hsSteps = document.getElementById('a2hs-steps');
       const btnInstall = document.getElementById('a2hs-install');
       const btnClose = document.getElementById('a2hs-close');
 
-      // Не используем localStorage: закрытие скрывает баннер только до перезагрузки (sessionStorage)
-      const SESSION_KEY_A2HS = 'a2hs_hidden_session';
-      const hiddenThisSession = sessionStorage.getItem(SESSION_KEY_A2HS) === '1';
-
-      if (!hiddenThisSession && !isStandalone && !isIG) {
-        let deferredPrompt = null;
+      // Показываем при каждом входе (только текущая сессия)
+      const SESSION_KEY_A2HS='a2hs_hidden_session';
+      if (sessionStorage.getItem(SESSION_KEY_A2HS)!=='1' && !isStandalone && !isIG) {
+        let deferredPrompt=null;
 
         if (isIOS) {
-          a2hsTitle.textContent = 'Как добавить на главный экран (iPhone)';
-          a2hsSteps.innerHTML = `
-            1) Нажми <span class="icon-share" aria-hidden="true"></span> <b>«Поделиться»</b> внизу экрана.<br>
-            2) Выбери <b>«На экран “Домой”»</b> → <b>Добавить</b>.
-          `;
+          a2hsTitle.textContent='Как добавить на главный экран (iPhone)';
+          a2hsSteps.innerHTML='1) Нажми <span class="icon-share"></span> <b>«Поделиться»</b> внизу экрана.<br>2) Выбери <b>«На экран “Домой”»</b> → <b>Добавить</b>.';
           a2hs.classList.add('visible');
         }
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-          e.preventDefault();
-          if (!isAndroid) return;
-          deferredPrompt = e;
-          a2hsTitle.textContent = 'Добавить на главный экран (Android)';
-          a2hsSteps.innerHTML = `
-            Нажми кнопку <b>Установить</b> ниже.<br>
-            Если баннер не появился: меню <b>⋮</b> → <b>Добавить на главный экран</b>.
-          `;
-          btnInstall.style.display = 'inline-block';
-          a2hs.classList.add('visible');
+        window.addEventListener('beforeinstallprompt',(e)=>{
+          e.preventDefault(); if(!isAndroid) return; deferredPrompt=e;
+          a2hsTitle.textContent='Добавить на главный экран (Android)';
+          a2hsSteps.innerHTML='Нажми кнопку <b>Установить</b> ниже. Если баннер не появился: меню <b>⋮</b> → <b>Добавить на главный экран</b>.';
+          btnInstall.style.display='inline-flex'; a2hs.classList.add('visible');
         });
-
-        btnInstall.addEventListener('click', async () => {
-          if (!deferredPrompt) return;
-          deferredPrompt.prompt();
-          try { await deferredPrompt.userChoice; } catch(_) {}
-          deferredPrompt = null;
-          a2hs.classList.remove('visible');
-          sessionStorage.setItem(SESSION_KEY_A2HS, '1'); // скрыть до перезагрузки
-        });
-
-        btnClose.addEventListener('click', () => {
-          a2hs.classList.remove('visible');
-          sessionStorage.setItem(SESSION_KEY_A2HS, '1'); // скрыть до перезагрузки
-        });
-
-        window.addEventListener('appinstalled', () => {
-          a2hs.classList.remove('visible'); // при установке скрываем
-        });
+        btnInstall.onclick=async()=>{ if(!deferredPrompt) return; deferredPrompt.prompt(); try{await deferredPrompt.userChoice;}catch(_){} deferredPrompt=null; a2hs.classList.remove('visible'); sessionStorage.setItem(SESSION_KEY_A2HS,'1'); };
+        btnClose.onclick=()=>{ a2hs.classList.remove('visible'); sessionStorage.setItem(SESSION_KEY_A2HS,'1'); };
+        window.addEventListener('appinstalled',()=>a2hs.classList.remove('visible'));
       }
 
-      /* ---------- Баннер для Instagram WebView (тоже показывать при каждом заходе) ---------- */
+      /* ===== Баннер для Instagram WebView (каждый заход) ===== */
       if (isIG && !isStandalone) {
-        const bar = document.getElementById('igbar');
-        const steps = document.getElementById('ig-steps');
-        const btnOpen  = document.getElementById('ig-open');
-        const btnShare = document.getElementById('ig-share');
-        const btnCopy  = document.getElementById('ig-copy');
-        const btnCloseIG = document.getElementById('ig-close');
-        const URL_NOW  = location.href.split('#')[0];
-
-        steps.innerHTML = isIOS
-          ? `Чтобы добавить на главный экран, открой в Safari:<br>
-              Нажми <b>…</b> вверху справа → <b>Open in System Browser</b>.<br>
-              В Safari: <b>Поделиться</b> → <b>На экран “Домой”</b> → <b>Добавить</b>.`
-          : `Чтобы добавить на главный экран, открой в Chrome:<br>
-              Меню <b>⋮</b> → <b>Открыть в Chrome</b> (или кнопка ниже).<br>
-              В Chrome: <b>⋮</b> → <b>Добавить на главный экран</b> / <b>Установить приложение</b>.`;
+        const bar=document.getElementById('igbar');
+        const steps=document.getElementById('ig-steps');
+        const btnOpen=document.getElementById('ig-open');
+        const btnShare=document.getElementById('ig-share');
+        const btnCopy=document.getElementById('ig-copy');
+        const btnCloseIG=document.getElementById('ig-close');
+        const URL_NOW=location.href.split('#')[0];
 
         if (isIOS) {
-          btnOpen.href = URL_NOW; // авто-открыть Safari нельзя
+          steps.innerHTML='Чтобы добавить на главный экран, открой в Safari:<br>Нажми <b>…</b> вверху справа → <b>Open in System Browser</b>.<br>В Safari: <b>Поделиться</b> → <b>На экран “Домой”</b> → <b>Добавить</b>.';
+          btnOpen.href=URL_NOW;
         } else {
-          const intent = `intent://${location.host}${location.pathname}${location.search}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(URL_NOW)};end`;
-          btnOpen.addEventListener('click', (e)=>{ e.preventDefault(); location.href = intent; });
+          steps.innerHTML='Чтобы добавить на главный экран, открой в Chrome:<br>Меню <b>⋮</b> → <b>Открыть в Chrome</b> (или кнопка ниже).<br>В Chrome: <b>⋮</b> → <b>Добавить на главный экран</b> / <b>Установить приложение</b>.';
+          const intent=`intent://${location.host}${location.pathname}${location.search}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(URL_NOW)};end`;
+          btnOpen.addEventListener('click',(e)=>{e.preventDefault();location.href=intent;});
         }
 
-        btnShare.addEventListener('click', async ()=>{
-          const data = { title: document.title, text: 'Открой во внешнем браузере', url: URL_NOW };
-          if (navigator.share) { try { await navigator.share(data); return; } catch(e){} }
-          try { await navigator.clipboard.writeText(URL_NOW); alert('Ссылка скопирована. Открой её в Chrome/Safari.'); }
-          catch { prompt('Скопируй ссылку вручную:', URL_NOW); }
-        });
-
-        btnCopy.addEventListener('click', async ()=>{
-          try { await navigator.clipboard.writeText(URL_NOW); alert('Ссылка скопирована. Открой её в Chrome/Safari.'); }
-          catch { prompt('Скопируй ссылку вручную:', URL_NOW); }
-        });
-
-        btnCloseIG.addEventListener('click', ()=> bar.remove());
+        btnShare.onclick=async()=>{const data={title:document.title,text:'Открой во внешнем браузере',url:URL_NOW}; if(navigator.share){try{await navigator.share(data);return;}catch(e){}} try{await navigator.clipboard.writeText(URL_NOW);alert('Ссылка скопирована. Открой её в Chrome/Safari.');}catch{prompt('Скопируй ссылку вручную:',URL_NOW);} };
+        btnCopy.onclick=async()=>{try{await navigator.clipboard.writeText(URL_NOW);alert('Ссылка скопирована. Открой её в Chrome/Safari.');}catch{prompt('Скопируй ссылку вручную:',URL_NOW);} };
+        btnCloseIG.onclick=()=>bar.remove();
         bar.classList.add('visible');
       }
     })();
