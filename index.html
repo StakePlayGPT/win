@@ -34,6 +34,7 @@
       display:inline-block; padding:12px 18px; border-radius:10px; text-decoration:none; font-weight:600;
     }
     .btn-primary{background:var(--accent); color:#0b0b0c}
+
     /* БАННЕР-ПОДСКАЗКА */
     .a2hs{
       position:fixed; left:12px; right:12px; bottom:12px; z-index:50;
@@ -45,7 +46,7 @@
     .a2hs .txt{font-size:14px; color:#d9d9de}
     .a2hs .muted{color:var(--muted)}
     .a2hs .actions{margin-left:auto; display:flex; gap:8px}
-    .a2hs button{padding:8px 12px; border-radius:10px; border:1px solid var(--line); background:#1b1b20; color:#fff; cursor:pointer}
+    .a2hs button,.a2hs a{padding:8px 12px; border-radius:10px; border:1px solid var(--line); background:#1b1b20; color:#fff; cursor:pointer; text-decoration:none}
     .a2hs .ok{background:var(--accent); color:#0b0b0c; border-color:#149a49}
     .a2hs .close{background:#25252b}
     .hint-steps{margin:.3rem 0 0; line-height:1.45}
@@ -64,84 +65,127 @@
 
   <!-- Баннер подсказки (iOS/Android) -->
   <div id="a2hs" class="a2hs" role="region" aria-live="polite">
-    <div class="txt" id="a2hs-text">
-      <!-- сюда подставляется инструкция -->
-    </div>
+    <div class="txt" id="a2hs-text"></div>
     <div class="actions">
       <button id="a2hs-install" class="ok" style="display:none">Установить</button>
       <button id="a2hs-close" class="close">Закрыть</button>
     </div>
   </div>
 
+  <!-- Баннер для Instagram WebView -->
+  <div id="ig-banner" class="a2hs" role="region" aria-live="polite">
+    <div class="txt" id="ig-text"></div>
+    <div class="actions">
+      <a id="ig-open" class="ok" href="#">Открыть во внешнем браузере</a>
+      <button id="ig-copy">Скопировать ссылку</button>
+      <a href="tg://resolve?domain=YOUR_BOT" class="close">Открыть в Telegram</a>
+      <button id="ig-close" class="close">×</button>
+    </div>
+  </div>
+
   <script>
     (function(){
+      const ua = navigator.userAgent.toLowerCase();
+      const isIOS = /iphone|ipad|ipod/.test(ua);
+      const isAndroid = /android/.test(ua);
+      const isIG = ua.includes('instagram');
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+
       const banner = document.getElementById('a2hs');
       const text   = document.getElementById('a2hs-text');
       const btnInstall = document.getElementById('a2hs-install');
       const btnClose   = document.getElementById('a2hs-close');
 
-      const ua = navigator.userAgent.toLowerCase();
-      const isIOS = /iphone|ipad|ipod/.test(ua);
-      const isAndroid = /android/.test(ua);
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-
-      // Скрыть баннер навсегда после закрытия
       const KEY = 'a2hs_dismissed_v1';
-      if (localStorage.getItem(KEY)) return;
+      if (!localStorage.getItem(KEY) && !isStandalone && !isIG) {
+        let deferredPrompt = null;
 
-      let deferredPrompt = null;
+        window.addEventListener('beforeinstallprompt', (e) => {
+          e.preventDefault();
+          deferredPrompt = e;
+          if (isAndroid) {
+            text.innerHTML = `
+              <div><b>Добавить на главный экран (Android)</b></div>
+              <div class="hint-steps">
+                Нажми кнопку <b>Установить</b> ниже.<br>
+                Если баннер не появился: открой меню <b>⋮</b> → <b>Добавить на главный экран</b>.
+              </div>
+            `;
+            btnInstall.style.display = 'inline-block';
+            banner.classList.add('visible');
+          }
+        });
 
-      // ANDROID: ловим beforeinstallprompt и показываем кнопку «Установить»
-      window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        if (!isStandalone && isAndroid) {
+        btnInstall.addEventListener('click', async () => {
+          if (!deferredPrompt) return;
+          deferredPrompt.prompt();
+          try { await deferredPrompt.userChoice; } catch(_) {}
+          deferredPrompt = null;
+          banner.classList.remove('visible');
+          localStorage.setItem(KEY, '1');
+        });
+
+        if (isIOS) {
           text.innerHTML = `
-            <div><b>Добавить на главный экран (Android)</b></div>
+            <div><b>Как добавить на главный экран (iPhone)</b></div>
             <div class="hint-steps">
-              Нажми кнопку <b>Установить</b> ниже.<br>
-              Если баннер не появился: открой меню <b>⋮</b> → <b>Добавить на главный экран</b>.
+              1) Нажми <span class="icon-share" aria-hidden="true"></span> <b>«Поделиться»</b> внизу экрана.<br>
+              2) Выбери <b>«На экран “Домой”»</b>.<br>
+              3) Нажми <b>«Добавить»</b>.
             </div>
+            <div class="muted">После этого сайт откроется как приложение — без адресной строки.</div>
           `;
-          btnInstall.style.display = 'inline-block';
           banner.classList.add('visible');
         }
-      });
 
-      btnInstall.addEventListener('click', async () => {
-        if (!deferredPrompt) return;
-        deferredPrompt.prompt();
-        try { await deferredPrompt.userChoice; } catch(_) {}
-        deferredPrompt = null;
-        banner.classList.remove('visible');
-        localStorage.setItem(KEY, '1');
-      });
+        btnClose.addEventListener('click', () => {
+          banner.classList.remove('visible');
+          localStorage.setItem(KEY, '1');
+        });
 
-      // iOS: показываем текстовую подсказку
-      if (isIOS && !isStandalone) {
-        text.innerHTML = `
-          <div><b>Как добавить на главный экран (iPhone)</b></div>
-          <div class="hint-steps">
-            1) Нажми <span class="icon-share" aria-hidden="true"></span> <b>«Поделиться»</b> внизу экрана.<br>
-            2) Выбери <b>«На экран “Домой”»</b>.<br>
-            3) Нажми <b>«Добавить»</b>.
-          </div>
-          <div class="muted">После этого сайт откроется как приложение — без адресной строки.</div>
-        `;
-        banner.classList.add('visible');
+        window.addEventListener('appinstalled', () => {
+          banner.classList.remove('visible');
+          localStorage.setItem(KEY, '1');
+        });
       }
 
-      // Закрыть
-      btnClose.addEventListener('click', () => {
-        banner.classList.remove('visible');
-        localStorage.setItem(KEY, '1');
-      });
+      // Instagram WebView — показываем отдельный баннер
+      if (isIG && !isStandalone) {
+        const igBanner = document.getElementById('ig-banner');
+        const igText = document.getElementById('ig-text');
+        const igBtn = document.getElementById('ig-open');
+        const igCopy = document.getElementById('ig-copy');
+        const igClose = document.getElementById('ig-close');
+        const URL_NOW = location.href.split('#')[0];
 
-      // Если приложение уже установлено — не показываем баннер
-      window.addEventListener('appinstalled', () => {
-        banner.classList.remove('visible');
-        localStorage.setItem(KEY, '1');
-      });
+        if (isIOS) {
+          igText.innerHTML = `
+            <b>Вы открыли сайт в Instagram</b><br>
+            Чтобы добавить на главный экран: открой в Safari.<br>
+            Нажми ⋯ в правом верхнем углу → <b>Открыть в System Browser</b>,<br>
+            затем <b>Поделиться → На экран Домой → Добавить</b>.
+          `;
+          igBtn.href = URL_NOW;
+        } else {
+          igText.innerHTML = `
+            <b>Вы открыли сайт в Instagram</b><br>
+            Чтобы добавить на главный экран: открой в Chrome.<br>
+            Нажми ⋮ в правом верхнем углу → <b>Открыть в Chrome</b>,<br>
+            затем <b>⋮ → Добавить на главный экран</b>.
+          `;
+          const intent = `intent://${location.host}${location.pathname}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(URL_NOW)};end`;
+          igBtn.href = intent;
+        }
+
+        igCopy.onclick = async () => {
+          try { await navigator.clipboard.writeText(URL_NOW); alert('Ссылка скопирована. Открой её в Safari/Chrome.'); }
+          catch { prompt('Скопируй ссылку вручную:', URL_NOW); }
+        };
+
+        igClose.onclick = () => igBanner.remove();
+
+        igBanner.classList.add('visible');
+      }
     })();
   </script>
 </body>
