@@ -6,12 +6,14 @@
   <title>Stake Play</title>
 
   <!-- Подключаем PWA -->
-  <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" href="/win/manifest.json">
   <meta name="theme-color" content="#000000">
 
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js');
+      navigator.serviceWorker.register('/win/sw.js')
+        .then(() => console.log("Service Worker registrato"))
+        .catch(err => console.error("SW errore:", err));
     }
   </script>
 
@@ -27,12 +29,11 @@
       height:100vh; 
       text-align:center; 
     }
-    h1 { font-size:28px; }
-    p { color:#9aa0a6; }
+    h1 { font-size:28px; margin:0 0 10px; }
+    p { color:#9aa0a6; margin:0 0 20px; }
     a.btn {
       display:inline-block;
       padding:12px 20px;
-      margin-top:20px;
       background:#22c55e;
       color:#0b0b0c;
       font-weight:600;
