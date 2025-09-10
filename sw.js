@@ -1,47 +1,54 @@
-// This is the "Offline page" service worker
+const CACHE = 'stakeplay-cache-v1';
+const ASSETS = [
+  '/win/',
+  '/win/index.html',
+  '/win/manifest.json',
+  '/win/offline.html'
+];
 
-importScripts('https://storage.googleapis.com/workbox-cdn/releases/5.1.2/workbox-sw.js');
-
-const CACHE = "pwabuilder-page";
-
-// TODO: replace the following with the correct offline fallback page i.e.: const offlineFallbackPage = "offline.html";
-const offlineFallbackPage = "offline.html";
-
-self.addEventListener("message", (event) => {
-  if (event.data && event.data.type === "SKIP_WAITING") {
-    self.skipWaiting();
-  }
-});
-
-self.addEventListener('install', async (event) => {
-  event.waitUntil(
-    caches.open(CACHE)
-      .then((cache) => cache.add(offlineFallbackPage))
+self.addEventListener('install', (e) => {
+  e.waitUntil(
+    caches.open(CACHE).then(cache => cache.addAll(ASSETS))
   );
+  self.skipWaiting();
 });
 
-if (workbox.navigationPreload.isSupported()) {
-  workbox.navigationPreload.enable();
-}
+self.addEventListener('activate', (e) => {
+  e.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => k !== CACHE && caches.delete(k)));
+  })());
+  self.clients.claim();
+});
 
-self.addEventListener('fetch', (event) => {
-  if (event.request.mode === 'navigate') {
-    event.respondWith((async () => {
+self.addEventListener('fetch', (e) => {
+  const req = e.request;
+
+  // Навигация: сеть → офлайн-фоллбек
+  if (req.mode === 'navigate') {
+    e.respondWith((async () => {
       try {
-        const preloadResp = await event.preloadResponse;
-
-        if (preloadResp) {
-          return preloadResp;
-        }
-
-        const networkResp = await fetch(event.request);
-        return networkResp;
-      } catch (error) {
-
+        return await fetch(req);
+      } catch {
         const cache = await caches.open(CACHE);
-        const cachedResp = await cache.match(offlineFallbackPage);
-        return cachedResp;
+        const offline = await cache.match('/win/offline.html');
+        return offline || new Response('Offline', {status: 503});
       }
     })());
+    return;
   }
+
+  // Остальное: cache-first
+  e.respondWith((async () => {
+    const cached = await caches.match(req);
+    if (cached) return cached;
+    try {
+      const fresh = await fetch(req);
+      const cache = await caches.open(CACHE);
+      cache.put(req, fresh.clone());
+      return fresh;
+    } catch {
+      return cached || Response.error();
+    }
+  })());
 });
