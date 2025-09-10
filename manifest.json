@@ -1,11 +1,32 @@
 {
-  "background_color": "#ffffff",
-  "dir": "ltr",
-  "display": "standalone",
-  "name": "stakeplaygpt.github",
-  "orientation": "any",
-  "scope": "/",
-  "short_name": "stakeplaygpt.github",
+  "name": "Stake Play",
+  "short_name": "StakePlay",
   "start_url": "/",
-  "theme_color": "#ffffff"
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "lang": "it",
+  "description": "Accesso rapido ai segnali e ai giochi direttamente dalla schermata del telefono.",
+  "icons": [
+    {
+      "src": "/icons/stakeplay_icon_192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/stakeplay_icon_256.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/stakeplay_icon_512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
 }
