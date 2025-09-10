@@ -15,9 +15,7 @@
   </script>
 
   <style>
-    :root {
-      --bg:#0b0b0c; --card:#131316; --line:#23232a; --fg:#fff; --muted:#9aa0a6; --accent:#22c55e;
-    }
+    :root { --bg:#0b0b0c; --card:#131316; --line:#23232a; --fg:#fff; --muted:#9aa0a6; --accent:#22c55e; }
     *{box-sizing:border-box}
     body{
       margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
@@ -29,27 +27,43 @@
       text-align:center; box-shadow:0 12px 30px rgba(0,0,0,.35);
     }
     h1{margin:0 0 8px;font-size:28px}
-    p{margin:0 0 20px;color:var(--muted)}
-    .btn{
-      display:inline-block; padding:12px 18px; border-radius:10px; text-decoration:none; font-weight:600;
-    }
-    .btn-primary{background:var(--accent); color:#0b0b0c}
+    p{margin:0 0 0;color:var(--muted)}
 
-    /* БАННЕР-ПОДСКАЗКА */
+    /* Общий баннер A2HS */
     .a2hs{
       position:fixed; left:12px; right:12px; bottom:12px; z-index:50;
-      background:#15151a; border:1px solid var(--line); color:var(--fg); border-radius:14px;
-      padding:12px 14px; display:none; gap:12px; align-items:flex-start;
-      box-shadow:0 10px 24px rgba(0,0,0,.35);
+      background:#15151a; border:1px solid var(--line); color:var(--fg); border-radius:16px;
+      padding:14px; display:none; box-shadow:0 10px 24px rgba(0,0,0,.35);
     }
-    .a2hs.visible{display:flex}
-    .a2hs .txt{font-size:14px; color:#d9d9de}
-    .a2hs .muted{color:var(--muted)}
-    .a2hs .actions{margin-left:auto; display:flex; gap:8px}
-    .a2hs button,.a2hs a{padding:8px 12px; border-radius:10px; border:1px solid var(--line); background:#1b1b20; color:#fff; cursor:pointer; text-decoration:none}
+    .a2hs.visible{display:block}
+    .a2hs .title{font-weight:800; margin:0 0 6px}
+    .a2hs .steps{color:#d9d9de; font-size:14px; line-height:1.5}
+    .a2hs .actions{margin-top:10px; display:flex; gap:8px; flex-wrap:wrap}
+    .a2hs button,.a2hs a{
+      padding:10px 12px; border-radius:10px; border:1px solid #2a2a31;
+      background:#1b1b20; color:#fff; cursor:pointer; text-decoration:none; font-weight:700
+    }
     .a2hs .ok{background:var(--accent); color:#0b0b0c; border-color:#149a49}
-    .a2hs .close{background:#25252b}
-    .hint-steps{margin:.3rem 0 0; line-height:1.45}
+    .a2hs .ghost{background:#25252b}
+
+    /* Баннер для Instagram WebView */
+    .igbar{ composes: a2hs; } /* для читаемости; если не поддерживается, ниже дубль */
+    .igbar{
+      position:fixed; left:12px; right:12px; bottom:12px; z-index:60;
+      background:#15151a; border:1px solid var(--line); color:#fff; border-radius:16px;
+      padding:14px; display:none; box-shadow:0 10px 24px rgba(0,0,0,.35);
+    }
+    .igbar.visible{display:block}
+    .igbar .title{font-weight:800; margin:0 0 6px}
+    .igbar .steps{color:#d9d9de; font-size:14px; line-height:1.5; white-space:normal; word-break:normal}
+    .igbar .actions{margin-top:10px; display:flex; gap:8px; flex-wrap:wrap}
+    .igbar .btn{padding:10px 12px; border-radius:10px; border:1px solid #2a2a31;
+                background:#1b1b20; color:#fff; cursor:pointer; text-decoration:none; font-weight:700}
+    .igbar .btn-primary{background:#22c55e; color:#0b0b0c; border-color:#149a49}
+    .igbar .btn-ghost{background:#25252b}
+    @media (max-width: 420px){
+      .a2hs .actions, .igbar .actions{flex-direction:column; align-items:stretch}
+    }
     .icon-share{display:inline-block; width:14px; height:14px; border:2px solid currentColor; border-radius:3px; position:relative; top:2px; margin:0 3px}
     .icon-share::after{content:"↑"; position:absolute; left:2px; top:-8px; font-weight:700; font-size:12px}
   </style>
@@ -59,27 +73,28 @@
     <div class="card">
       <h1>Stake Play</h1>
       <p>Accesso rapido ai segnali e ai giochi 🎮</p>
-      <a class="btn btn-primary" href="https://t.me/tuobot">Открыть в Telegram</a>
     </div>
   </div>
 
-  <!-- Баннер подсказки (iOS/Android) -->
+  <!-- Баннер A2HS (iOS/Android для внешних браузеров) -->
   <div id="a2hs" class="a2hs" role="region" aria-live="polite">
-    <div class="txt" id="a2hs-text"></div>
+    <div class="title" id="a2hs-title"></div>
+    <div class="steps" id="a2hs-steps"></div>
     <div class="actions">
       <button id="a2hs-install" class="ok" style="display:none">Установить</button>
-      <button id="a2hs-close" class="close">Закрыть</button>
+      <button id="a2hs-close" class="ghost">Скрыть</button>
     </div>
   </div>
 
   <!-- Баннер для Instagram WebView -->
-  <div id="ig-banner" class="a2hs" role="region" aria-live="polite">
-    <div class="txt" id="ig-text"></div>
+  <div id="igbar" class="igbar" role="region" aria-live="polite">
+    <div class="title">Вы открыли сайт внутри Instagram</div>
+    <div id="ig-steps" class="steps"></div>
     <div class="actions">
-      <a id="ig-open" class="ok" href="#">Открыть во внешнем браузере</a>
-      <button id="ig-copy">Скопировать ссылку</button>
-      <a href="tg://resolve?domain=YOUR_BOT" class="close">Открыть в Telegram</a>
-      <button id="ig-close" class="close">×</button>
+      <a id="ig-open" class="btn btn-primary" href="#">Открыть во внешнем браузере</a>
+      <button id="ig-share" class="btn">Поделиться…</button>
+      <button id="ig-copy"  class="btn btn-ghost">Скопировать ссылку</button>
+      <button id="ig-close" class="btn btn-ghost">Скрыть</button>
     </div>
   </div>
 
@@ -91,29 +106,37 @@
       const isIG = ua.includes('instagram');
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 
-      const banner = document.getElementById('a2hs');
-      const text   = document.getElementById('a2hs-text');
+      /* ---------- Обычный A2HS баннер (не для Instagram) ---------- */
+      const a2hs = document.getElementById('a2hs');
+      const a2hsTitle = document.getElementById('a2hs-title');
+      const a2hsSteps = document.getElementById('a2hs-steps');
       const btnInstall = document.getElementById('a2hs-install');
-      const btnClose   = document.getElementById('a2hs-close');
+      const btnClose = document.getElementById('a2hs-close');
 
       const KEY = 'a2hs_dismissed_v1';
       if (!localStorage.getItem(KEY) && !isStandalone && !isIG) {
         let deferredPrompt = null;
 
+        if (isIOS) {
+          a2hsTitle.textContent = 'Как добавить на главный экран (iPhone)';
+          a2hsSteps.innerHTML = `
+            1) Нажми <span class="icon-share" aria-hidden="true"></span> <b>«Поделиться»</b> внизу экрана.<br>
+            2) Выбери <b>«На экран “Домой”»</b> → <b>Добавить</b>.
+          `;
+          a2hs.classList.add('visible');
+        }
+
         window.addEventListener('beforeinstallprompt', (e) => {
           e.preventDefault();
+          if (!isAndroid) return;
           deferredPrompt = e;
-          if (isAndroid) {
-            text.innerHTML = `
-              <div><b>Добавить на главный экран (Android)</b></div>
-              <div class="hint-steps">
-                Нажми кнопку <b>Установить</b> ниже.<br>
-                Если баннер не появился: открой меню <b>⋮</b> → <b>Добавить на главный экран</b>.
-              </div>
-            `;
-            btnInstall.style.display = 'inline-block';
-            banner.classList.add('visible');
-          }
+          a2hsTitle.textContent = 'Добавить на главный экран (Android)';
+          a2hsSteps.innerHTML = `
+            Нажми кнопку <b>Установить</b> ниже.<br>
+            Если баннер не появился: меню <b>⋮</b> → <b>Добавить на главный экран</b>.
+          `;
+          btnInstall.style.display = 'inline-block';
+          a2hs.classList.add('visible');
         });
 
         btnInstall.addEventListener('click', async () => {
@@ -121,70 +144,58 @@
           deferredPrompt.prompt();
           try { await deferredPrompt.userChoice; } catch(_) {}
           deferredPrompt = null;
-          banner.classList.remove('visible');
+          a2hs.classList.remove('visible');
           localStorage.setItem(KEY, '1');
         });
 
-        if (isIOS) {
-          text.innerHTML = `
-            <div><b>Как добавить на главный экран (iPhone)</b></div>
-            <div class="hint-steps">
-              1) Нажми <span class="icon-share" aria-hidden="true"></span> <b>«Поделиться»</b> внизу экрана.<br>
-              2) Выбери <b>«На экран “Домой”»</b>.<br>
-              3) Нажми <b>«Добавить»</b>.
-            </div>
-            <div class="muted">После этого сайт откроется как приложение — без адресной строки.</div>
-          `;
-          banner.classList.add('visible');
-        }
-
         btnClose.addEventListener('click', () => {
-          banner.classList.remove('visible');
+          a2hs.classList.remove('visible');
           localStorage.setItem(KEY, '1');
         });
 
         window.addEventListener('appinstalled', () => {
-          banner.classList.remove('visible');
+          a2hs.classList.remove('visible');
           localStorage.setItem(KEY, '1');
         });
       }
 
-      // Instagram WebView — показываем отдельный баннер
+      /* ---------- Баннер для Instagram WebView ---------- */
       if (isIG && !isStandalone) {
-        const igBanner = document.getElementById('ig-banner');
-        const igText = document.getElementById('ig-text');
-        const igBtn = document.getElementById('ig-open');
-        const igCopy = document.getElementById('ig-copy');
-        const igClose = document.getElementById('ig-close');
-        const URL_NOW = location.href.split('#')[0];
+        const bar = document.getElementById('igbar');
+        const steps = document.getElementById('ig-steps');
+        const btnOpen  = document.getElementById('ig-open');
+        const btnShare = document.getElementById('ig-share');
+        const btnCopy  = document.getElementById('ig-copy');
+        const btnCloseIG = document.getElementById('ig-close');
+        const URL_NOW  = location.href.split('#')[0];
 
         if (isIOS) {
-          igText.innerHTML = `
-            <b>Вы открыли сайт в Instagram</b><br>
-            Чтобы добавить на главный экран: открой в Safari.<br>
-            Нажми ⋯ в правом верхнем углу → <b>Открыть в System Browser</b>,<br>
-            затем <b>Поделиться → На экран Домой → Добавить</b>.
-          `;
-          igBtn.href = URL_NOW;
+          steps.innerHTML = `Чтобы добавить на главный экран, открой в Safari:<br>
+            Нажми <b>…</b> вверху справа → <b>Open in System Browser</b>.<br>
+            В Safari: <b>Поделиться</b> → <b>На экран “Домой”</b> → <b>Добавить</b>.`;
+          btnOpen.href = URL_NOW; // авто-открыть Safari нельзя
         } else {
-          igText.innerHTML = `
-            <b>Вы открыли сайт в Instagram</b><br>
-            Чтобы добавить на главный экран: открой в Chrome.<br>
-            Нажми ⋮ в правом верхнем углу → <b>Открыть в Chrome</b>,<br>
-            затем <b>⋮ → Добавить на главный экран</b>.
-          `;
-          const intent = `intent://${location.host}${location.pathname}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(URL_NOW)};end`;
-          igBtn.href = intent;
+          steps.innerHTML = `Чтобы добавить на главный экран, открой в Chrome:<br>
+            Меню <b>⋮</b> → <b>Открыть в Chrome</b> (или кнопка ниже).<br>
+            В Chrome: <b>⋮</b> → <b>Добавить на главный экран</b> / <b>Установить приложение</b>.`;
+          const intent = `intent://${location.host}${location.pathname}${location.search}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(URL_NOW)};end`;
+          btnOpen.addEventListener('click', (e)=>{ e.preventDefault(); location.href = intent; });
         }
 
-        igCopy.onclick = async () => {
-          try { await navigator.clipboard.writeText(URL_NOW); alert('Ссылка скопирована. Открой её в Safari/Chrome.'); }
+        btnShare.addEventListener('click', async ()=>{
+          const data = { title: document.title, text: 'Открой во внешнем браузере', url: URL_NOW };
+          if (navigator.share) { try { await navigator.share(data); return; } catch(e){} }
+          try { await navigator.clipboard.writeText(URL_NOW); alert('Ссылка скопирована. Открой её в Chrome/Safari.'); }
           catch { prompt('Скопируй ссылку вручную:', URL_NOW); }
-        };
+        });
 
-        igClose.onclick = () => igBanner.remove();
+        btnCopy.addEventListener('click', async ()=>{
+          try { await navigator.clipboard.writeText(URL_NOW); alert('Ссылка скопирована. Открой её в Chrome/Safari.'); }
+          catch { prompt('Скопируй ссылку вручную:', URL_NOW); }
+        });
 
-        igBanner.classList.add('visible');
+        btnCloseIG.addEventListener('click', ()=> bar.remove());
+        bar.classList.add('visible');
       }
     })();
   </script>
